@@ -20,7 +20,9 @@ namespace FacturasAPI.Controllers
         {
             try
             {
-                return await _context.FacturasCabecera.ToListAsync();
+                return await _context.FacturasCabecera
+                    .Include(x => x.FacturaDetalle)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -34,7 +36,9 @@ namespace FacturasAPI.Controllers
         {
             try
             {
-                var facturaCabecera = await _context.FacturasCabecera.FirstOrDefaultAsync(x => x.IdFacturaCabecera == id);
+                var facturaCabecera = await _context.FacturasCabecera
+                    .Include(x => x.FacturaDetalle)
+                    .FirstOrDefaultAsync(x => x.IdFacturaCabecera == id);
                 if (facturaCabecera == null)
                 {
                     return NotFound();

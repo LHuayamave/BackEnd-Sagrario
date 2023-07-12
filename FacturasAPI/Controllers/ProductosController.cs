@@ -21,7 +21,9 @@ namespace FacturasAPI.Controllers
         {
             try
             {
-                return await _context.Productos.ToListAsync();
+                return await _context.Productos
+                    .Include(x => x.FacturaDetalle)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -35,7 +37,9 @@ namespace FacturasAPI.Controllers
         {
             try
             {
-                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.IdProducto == id);
+                var producto = await _context.Productos
+                    .Include(x => x.FacturaDetalle)
+                    .FirstOrDefaultAsync(x => x.IdProducto == id);
                 if (producto == null)
                 {
                     return NotFound();

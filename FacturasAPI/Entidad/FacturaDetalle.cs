@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace FacturasAPI.Entidad
 {
@@ -12,7 +13,9 @@ namespace FacturasAPI.Entidad
         public int Cantidad { get; set; }
         public double PrecioUnitario { get; set; }
         public double SubtotalProducto { get; set; }
+        [JsonIgnore]
         public virtual FacturaCabecera FacturaCabecera { get; set; }
+        [JsonIgnore]
         public virtual Producto Producto { get; set; }
     }
 }
