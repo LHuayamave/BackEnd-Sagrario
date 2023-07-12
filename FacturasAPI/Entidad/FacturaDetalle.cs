@@ -3,14 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FacturasAPI.Entidad
 {
-    public class FacturaDetalle
+    public partial class FacturaDetalle
     {
         [Key]
-        public int Id { get; set; }
+        public int IdFacturaDetalle { get; set; }
+        public int IdFacturaCabecera { get; set; }
+        public int IdProducto { get; set; }
         public int Cantidad { get; set; }
         public double PrecioUnitario { get; set; }
-        public FacturaCabecera FacturaCabecera { get; set; }
-        public List<FacturaDetalleProducto> FacturaDetalleProductos { get; set; }
-        public List<Producto> Producto { get; set; }
+        public double SubtotalProducto { get; set; }
+        public virtual FacturaCabecera FacturaCabecera { get; set; }
+        public virtual Producto Producto { get; set; }
     }
 }

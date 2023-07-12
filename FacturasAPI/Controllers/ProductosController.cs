@@ -1,7 +1,5 @@
-﻿using FacturasAPI.DTOs;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using FacturasAPI.Entidad;
 
 namespace FacturasAPI.Controllers
@@ -10,94 +8,114 @@ namespace FacturasAPI.Controllers
     [Route("api/productos")]
     public class ProductosController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
-        private readonly IMapper mapper;
+        private readonly ApplicationDbContext _context;
 
-        public ProductosController(ApplicationDbContext context, IMapper mapper)
+        public ProductosController(ApplicationDbContext context)
         {
-            this.context = context;
-            this.mapper = mapper;
+            _context = context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ProductoDTO>>> Get()
+        [Route("listado")]
+        public async Task<ActionResult<List<Producto>>> Get()
         {
-            var productos = await context.Productos.ToListAsync();
-            return mapper.Map<List<ProductoDTO>>(productos);
-        }
-
-        [HttpGet("{id:int}", Name = "obtenerProducto")]
-        public async Task<ActionResult<ProductoDTO>> Get(int id)
-        {
-            var producto = await context.Productos.FirstOrDefaultAsync(x => x.Id == id);
-            if (producto == null)
-            {
-                return NotFound();
-            }
-            return mapper.Map<ProductoDTO>(producto);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Post([FromBody] ProductoCreacionDTO productoCreacion)
-        {
-            var existeProductoConElMismoNombre = await context.Productos.AnyAsync(x => x.Nombre == productoCreacion.Nombre);
-            if (existeProductoConElMismoNombre)
-            {
-                return BadRequest($"Ya existe un producto con el nombre{productoCreacion.Nombre}");
-            }
-
-            var producto = mapper.Map<Producto>(productoCreacion);
             try
             {
-                context.Add(producto);
-                await context.SaveChangesAsync();
+                return await _context.Productos.ToListAsync();
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Ha ocurrido un error " + ex.Message);
             }
-            var productoDTO = mapper.Map<ProductoDTO>(producto);
-            return CreatedAtRoute("obtenerProducto", new { id = producto.Id }, productoDTO);
+        }
+
+        [HttpGet(Name = "obtenerProducto")]
+        [Route("obtener/{id:int}")]
+        public async Task<ActionResult<Producto>> Get(int id)
+        {
+            try
+            {
+                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.IdProducto == id);
+                if (producto == null)
+                {
+                    return NotFound();
+                }
+                return producto;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> Post(Producto producto)
+        {
+            try
+            {
+                var existeProducto = await _context.Productos.AnyAsync(x => x.IdProducto == producto.IdProducto);
+
+                if (existeProducto)
+                {
+                    return BadRequest("El producto ya existe");
+                }
+
+                _context.Add(producto);
+                await _context.SaveChangesAsync();
+                return new CreatedAtRouteResult("obtenerProducto", new { id = producto.IdProducto }, producto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, [FromBody] ProductoCreacionDTO productoActualizacion)
+        public async Task<ActionResult> Put(Producto producto, int id)
         {
-            var existeProducto = await context.Productos.AnyAsync(x => x.Id == id);
-            if (!existeProducto)
-            {
-                return NotFound();
-            }
-            var producto = mapper.Map<Producto>(productoActualizacion);
-            producto.Id = id;
             try
             {
-                context.Update(producto);
-                await context.SaveChangesAsync();
-            }catch (Exception ex)
-            {
-                return BadRequest();
+                var existeProducto = await _context.Productos.AnyAsync(x => x.IdProducto == id);
+                if (!existeProducto)
+                {
+                    return NotFound();
+                }
+
+                if (id != producto.IdProducto)
+                {
+                    return BadRequest("Los IDs no coinciden");
+                }
+
+                _context.Update(producto);
+                await _context.SaveChangesAsync();
+                return Ok();
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        [HttpDelete]
+        [Route("eliminar/{id:int}")]
+        public async Task<ActionResult> Delete (int id)
         {
-            var existeProducto = await context.Productos.AnyAsync(x => x.Id == id);
-            if (!existeProducto)
-            {
-                return NotFound();
-            }
             try
             {
-                context.Remove(new Producto() { Id = id });
-                await context.SaveChangesAsync();
-            }catch(Exception ex)
+                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.IdProducto == id);
+                if (producto == null)
+                {
+                    return NotFound();
+                }
+                _context.Productos.Remove(producto);
+                await _context.SaveChangesAsync();
+                return Ok();
+
+            } catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Ha ocurrido un error " + ex.Message);
             }
-            return NoContent();
         }
     }
 }

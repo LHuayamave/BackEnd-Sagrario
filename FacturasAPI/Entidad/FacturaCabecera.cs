@@ -1,15 +1,14 @@
 ﻿using FacturasAPI.Validaciones;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FacturasAPI.Entidad
 {
-    public class FacturaCabecera
+    public partial class FacturaCabecera
     {
         [Key]
-        public int IdFactura { get; set; }
+        public int IdFacturaCabecera { get; set; }
         [Required]
-        public DateTime Fecha { get; set; }
+        public DateTime FechaFacturaCreacion { get; set; }
         public string NumeroFactura { get; set; }
         public DateTime FechaVencimiento { get; set; }
         [Required]
@@ -23,8 +22,10 @@ namespace FacturasAPI.Entidad
         public string DireccionEmpresa { get; set; }
         [Required]
         public string TelefonoEmpresa { get; set; }
-        public double Total { get; set; }
-
-        public FacturaDetalle FacturaDetalle { get; set; }
+        public double? Subtotal { get; set; }
+        public double? Iva { get; set; }
+        public double? TotalFactura { get; set; }
+        public string EstadoFacturaCabecera { get; set; }
+        public virtual ICollection<FacturaDetalle> FacturaDetalle { get; set; } = new List<FacturaDetalle>();
     }
 }
