@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using FacturasAPI.DTOs;
-using FacturasAPI.Entidad;
+﻿using FacturasAPI.Entidad;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,68 +8,68 @@ namespace FacturasAPI.Controllers
     [Route("api/facturas/detalle")]
     public class FacturaDetalleController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
-        private readonly IMapper mapper;
+        private readonly ApplicationDbContext _context;
 
-        public FacturaDetalleController(ApplicationDbContext context, IMapper mapper)
+        public FacturaDetalleController(ApplicationDbContext context)
         {
-            this.context = context;
-            this.mapper = mapper;
-        }
-        [HttpGet("{id:int}", Name = "obtenerFacturaDetalle")]
-        public async Task<ActionResult<FacturaDetalleDTO>> Get(int id)
-        {
-            var facturaDetalle = context.FacturasDetalle
-                .Include(x => x.FacturaDetalleProductos)
-                .Include(x => x.FacturaCabecera)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (facturaDetalle == null)
-            {
-                return NotFound();
-            }
-
-            var facturaDetalleDTO = mapper.Map<FacturaDetalleDTO>(facturaDetalle);
-            return facturaDetalleDTO;
+            _context = context;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<FacturaDetalleCreacionDTO>> Post(FacturaDetalleCreacionDTO facturaDetalleDTO)
+        [HttpGet]
+        [Route("listado")]
+        public async Task<ActionResult<List<FacturaDetalle>>> Get()
         {
-            var facturaDetalle = mapper.Map<FacturaDetalle>(facturaDetalleDTO);
-            var producto = context.Productos.FirstOrDefault(p => p.Id == facturaDetalleDTO.ProductoId);
             try
             {
-                if (producto == null)
-                {
-                    return BadRequest("El producto especificado no existe.");
-                }
-
-                var facturaCabecera = context.FacturasCabecera.FirstOrDefault(fc => fc.IdFactura == facturaDetalleDTO.FacturaCabeceraId);
-                if (facturaCabecera == null)
-                {
-                    return BadRequest("La factura especificada no existe.");
-                }
-
-                facturaDetalle.FacturaCabecera = facturaCabecera;
-
-                context.FacturasDetalle.Add(facturaDetalle);
-                await context.SaveChangesAsync();
-
-                var productoDetalle = new FacturaDetalleProducto { Producto = producto, FacturaDetalle = facturaDetalle };
-
-                await context.SaveChangesAsync();
-
-
-                facturaCabecera.Total = context.FacturasDetalle
-                    .Where(fd => fd.Id == facturaDetalleDTO.FacturaCabeceraId)
-                    .Sum(fd => fd.PrecioUnitario * fd.Cantidad);
+                return await _context.FacturasDetalle.ToListAsync();
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Ha ocurrido un error " + ex.Message);
             }
-            return CreatedAtAction(nameof(Get), new { id = facturaDetalle.Id }, facturaDetalleDTO);
+        }
+
+        [HttpGet]
+        [Route("obtener/{id:int}", Name = "obtenerFacturaDetalle")]
+        public async Task<ActionResult<FacturaDetalle>> Get(int id)
+        {
+            try
+            {
+                var facturaDetalle = await _context.FacturasDetalle.FirstOrDefaultAsync(x => x.IdFacturaDetalle == id);
+                if (facturaDetalle == null)
+                {
+                    return NotFound();
+                }
+                return facturaDetalle;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("insertar")]
+        public async Task<ActionResult> Post(FacturaDetalle facturaDetalle)
+        {
+            try
+            {
+                var existeFacturaDetalle = await _context.FacturasDetalle.AnyAsync(x => x.IdFacturaDetalle == facturaDetalle.IdFacturaDetalle);
+
+                if (existeFacturaDetalle)
+                {
+                    return BadRequest("Ya existe una factura con el mismo id");
+                }
+
+                _context.FacturasDetalle.Add(facturaDetalle);
+                await _context.SaveChangesAsync();
+
+                return new CreatedAtRouteResult("obtenerFacturaDetalle", new { id = facturaDetalle.IdFacturaDetalle }, facturaDetalle);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
         }
     }
 }

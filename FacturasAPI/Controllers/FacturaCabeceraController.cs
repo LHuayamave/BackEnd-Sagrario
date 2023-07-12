@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using FacturasAPI.DTOs;
-using FacturasAPI.Entidad;
+﻿using FacturasAPI.Entidad;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,46 +6,68 @@ namespace FacturasAPI.Controllers
 {
     [ApiController]
     [Route("api/facturas/cabecera")]
-    public class FacturaCabeceraController: ControllerBase
+    public class FacturaCabeceraController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
-        private readonly IMapper mapper;
+        private readonly ApplicationDbContext _context;
 
-        public FacturaCabeceraController(ApplicationDbContext context, IMapper mapper)
+        public FacturaCabeceraController(ApplicationDbContext context)
         {
-            this.context = context;
-            this.mapper = mapper;
+            _context = context;
         }
-        [HttpGet("{id:int}", Name = "obtenerFacturaCabecera")]
-        public async Task<ActionResult<FacturaCabeceraDTO>> Get(int id)
+        [HttpGet]
+        [Route("listado")]
+        public async Task<ActionResult<List<FacturaCabecera>>> Get()
         {
-            var facturaCabecera = await context.FacturasCabecera
-                .Include(x => x.FacturaDetalle)
-                .FirstOrDefaultAsync(x => x.IdFactura == id);
-            if (facturaCabecera == null)
+            try
             {
-                return NotFound();
+                return await _context.FacturasCabecera.ToListAsync();
             }
-         
-            var facturaCabeceraDTO = mapper.Map<FacturaCabeceraDTO>(facturaCabecera);   
-            return facturaCabeceraDTO;
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("obtener/{id:int}", Name = "obtenerFacturaCabecera")]
+        public async Task<ActionResult<FacturaCabecera>> Get(int id)
+        {
+            try
+            {
+                var facturaCabecera = await _context.FacturasCabecera.FirstOrDefaultAsync(x => x.IdFacturaCabecera == id);
+                if (facturaCabecera == null)
+                {
+                    return NotFound();
+                }
+                return facturaCabecera;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Ha ocurrido un error " + ex.Message);
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] FacturaCabeceraCreacionDTO facturaCabeceraCreacion)
+        [Route("insertar")]
+        public async Task<ActionResult> Post(FacturaCabecera facturaCabecera)
         {
-            var facturaCabecera = mapper.Map<FacturaCabecera>(facturaCabeceraCreacion);
             try
             {
-                context.FacturasCabecera.Add(facturaCabecera);
-                await context.SaveChangesAsync();
-            } 
+                var existeFacturaCabecera = await _context.FacturasCabecera.AnyAsync(x => x.IdFacturaCabecera == facturaCabecera.IdFacturaCabecera);
+
+                if (existeFacturaCabecera)
+                {
+                    return BadRequest("Ya existe una factura con el mismo id");
+                }
+
+                _context.FacturasCabecera.Add(facturaCabecera);
+                await _context.SaveChangesAsync();
+                return new CreatedAtRouteResult("obtenerFacturaCabecera", new { id = facturaCabecera.IdFacturaCabecera }, facturaCabecera);
+            }
             catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Ha ocurrido un error " + ex.Message);
             }
-            var facturaCabeceraDTO = mapper.Map<FacturaCabeceraDTO>(facturaCabecera);
-            return new CreatedAtRouteResult("obtenerFacturaCabecera", new { id = facturaCabecera.IdFactura }, facturaCabeceraDTO);
         }
     }
 }

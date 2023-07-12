@@ -13,7 +13,6 @@ namespace FacturasAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(Startup)); // Add AutoMapper
             services.AddControllers(); // Add Controllers
             services.AddDbContext<ApplicationDbContext>(options =>
             {
