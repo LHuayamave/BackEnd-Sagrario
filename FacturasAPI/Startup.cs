@@ -31,6 +31,8 @@ namespace FacturasAPI
             }
             app.UseHttpsRedirection();
 
+            
+
             app.UseStaticFiles();
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseRouting();

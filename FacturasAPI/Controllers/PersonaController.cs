@@ -19,18 +19,18 @@ namespace FacturasAPI.Controllers
         [Route("listado")]
         public async Task<ActionResult<List<Persona>>> Get()
         {
-            /*try
-            {*/
+            try
+            {
                 var result = await _context.Personas
                     .Include(x => x.FacturaCabecera)
                     .ThenInclude(x => x.FacturaDetalle)
                     .ToListAsync();
                 return result;
-            /*}
+            }
             catch (Exception ex)
             {
                 return BadRequest("Ha ocurrido un error " + ex.Message);
-            }*/
+            }
 
         }
 
@@ -42,6 +42,7 @@ namespace FacturasAPI.Controllers
             {
                 var persona = await _context.Personas
                     .Include(x => x.FacturaCabecera)
+                    .ThenInclude(x => x.FacturaDetalle)
                     .FirstOrDefaultAsync(x => x.IdPersona == id);
                 if (persona == null)
                 {
