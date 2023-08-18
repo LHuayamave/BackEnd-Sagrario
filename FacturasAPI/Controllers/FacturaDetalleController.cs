@@ -51,7 +51,7 @@ namespace FacturasAPI.Controllers
                 {
                     facturaCabecera.Subtotal += facturaDetalle.SubtotalProducto;
 
-                    facturaCabecera.Iva = 0.12m;
+                    facturaCabecera.Iva = facturaCabecera.Subtotal * 0.12m;
 
                     facturaCabecera.TotalFactura = facturaCabecera.Subtotal + (facturaCabecera.Subtotal * facturaCabecera.Iva);
                 }
