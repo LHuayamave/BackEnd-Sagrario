@@ -1,6 +1,7 @@
 ﻿using FacturasAPI.Entidad;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace FacturasAPI.Controllers
 {
@@ -52,7 +53,7 @@ namespace FacturasAPI.Controllers
         }
 
         [HttpPost]
-        [Route("insertar")]
+        [Route("crear")]
         public async Task<ActionResult> Post(FacturaCabecera facturaCabecera)
         {
             try
@@ -66,6 +67,7 @@ namespace FacturasAPI.Controllers
 
                 _context.FacturasCabecera.Add(facturaCabecera);
                 await _context.SaveChangesAsync();
+
                 return new CreatedAtRouteResult("obtenerFacturaCabecera", new { id = facturaCabecera.IdFacturaCabecera }, facturaCabecera);
             }
             catch (Exception ex)
@@ -73,5 +75,7 @@ namespace FacturasAPI.Controllers
                 return BadRequest("Ha ocurrido un error " + ex.Message);
             }
         }
+
+
     }
 }

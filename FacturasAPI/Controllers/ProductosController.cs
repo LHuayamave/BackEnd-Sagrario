@@ -54,6 +54,7 @@ namespace FacturasAPI.Controllers
 
 
         [HttpPost]
+        [Route("crear")]
         public async Task<ActionResult> Post(Producto producto)
         {
             try

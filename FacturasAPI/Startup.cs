@@ -13,13 +13,13 @@ namespace FacturasAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(); // Add Controllers
+            services.AddControllers();
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")); // Add DbContext
             });
             services.AddSwaggerGen();
-
+            
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -32,7 +32,7 @@ namespace FacturasAPI
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-            
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseRouting();
             
             app.UseAuthorization();

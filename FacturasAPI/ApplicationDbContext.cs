@@ -11,6 +11,7 @@ namespace FacturasAPI
         public DbSet<Producto> Productos { get; set; }
         public DbSet<FacturaCabecera> FacturasCabecera { get; set; }
         public DbSet<FacturaDetalle> FacturasDetalle { get; set; }
+        public DbSet<Persona> Personas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +28,24 @@ namespace FacturasAPI
                 entity.Property(e => e.FechaCreacion).HasColumnType("datetime").HasDefaultValueSql("getdate()");
                 entity.Property(e => e.FechaActualizacion).HasColumnType("datetime");
                 entity.Property(e => e.FechaEliminacion).HasColumnType("datetime");
+
+            });
+
+            modelBuilder.Entity<Persona>(entity =>
+            {
+                entity.HasKey(e => e.IdPersona).HasName("PK__Persona");
+                entity.ToTable("Persona");
+                entity.Property(e => e.Cedula).IsRequired().HasMaxLength(10).IsUnicode(false);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.Apellido).IsRequired().HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.Cedula).IsRequired().HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.Telefono).IsRequired().HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.Direccion).IsRequired().HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.EstadoPersona).IsRequired().HasMaxLength(1).IsUnicode(false).HasDefaultValue("A");
+                entity.Property(e => e.FechaCreacion).HasColumnType("datetime").HasDefaultValueSql("getdate()");
+                entity.Property(e => e.FechaActualizacion).HasColumnType("datetime");
+
+
             });
 
             modelBuilder.Entity<FacturaCabecera>(entity =>
@@ -45,8 +64,15 @@ namespace FacturasAPI
                 entity.Property(e => e.DireccionEmpresa).IsRequired().HasMaxLength(50).IsUnicode(false);
                 entity.Property(e => e.TelefonoEmpresa).IsRequired().HasMaxLength(50).IsUnicode(false);
                 entity.Property(e => e.Subtotal).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.TotalFactura).GetType().GetProperty("decimal(18,2)");
+
+
+                entity.HasOne(d => d.Persona)
+                    .WithMany(p => p.FacturaCabecera)
+                    .HasForeignKey(d => d.IdPersona)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_FacturaCabecera_Persona");
             });
+
 
             modelBuilder.Entity<FacturaDetalle>(entity =>
             {

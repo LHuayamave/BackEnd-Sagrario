@@ -29,27 +29,8 @@ namespace FacturasAPI.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("obtener/{id:int}", Name = "obtenerFacturaDetalle")]
-        public async Task<ActionResult<FacturaDetalle>> Get(int id)
-        {
-            try
-            {
-                var facturaDetalle = await _context.FacturasDetalle.FirstOrDefaultAsync(x => x.IdFacturaDetalle == id);
-                if (facturaDetalle == null)
-                {
-                    return NotFound();
-                }
-                return facturaDetalle;
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Ha ocurrido un error " + ex.Message);
-            }
-        }
-
         [HttpPost]
-        [Route("insertar")]
+        [Route("crear")]
         public async Task<ActionResult> Post(FacturaDetalle facturaDetalle)
         {
             try
@@ -62,6 +43,19 @@ namespace FacturasAPI.Controllers
                 }
 
                 _context.FacturasDetalle.Add(facturaDetalle);
+
+                facturaDetalle.SubtotalProducto = facturaDetalle.Cantidad * facturaDetalle.PrecioUnitario;
+
+                var facturaCabecera = await _context.FacturasCabecera.FindAsync(facturaDetalle.IdFacturaCabecera);
+                if (facturaCabecera != null)
+                {
+                    facturaCabecera.Subtotal += facturaDetalle.SubtotalProducto;
+
+                    facturaCabecera.Iva = 0.12m;
+
+                    facturaCabecera.TotalFactura = facturaCabecera.Subtotal + (facturaCabecera.Subtotal * facturaCabecera.Iva);
+                }
+
                 await _context.SaveChangesAsync();
 
                 return new CreatedAtRouteResult("obtenerFacturaDetalle", new { id = facturaDetalle.IdFacturaDetalle }, facturaDetalle);
@@ -71,5 +65,7 @@ namespace FacturasAPI.Controllers
                 return BadRequest("Ha ocurrido un error " + ex.Message);
             }
         }
+
+
     }
 }

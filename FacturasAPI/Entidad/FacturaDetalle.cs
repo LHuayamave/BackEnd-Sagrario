@@ -11,8 +11,8 @@ namespace FacturasAPI.Entidad
         public int IdFacturaCabecera { get; set; }
         public int IdProducto { get; set; }
         public int Cantidad { get; set; }
-        public double PrecioUnitario { get; set; }
-        public double SubtotalProducto { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal SubtotalProducto { get; set; }
         [JsonIgnore]
         public virtual FacturaCabecera FacturaCabecera { get; set; }
         [JsonIgnore]
